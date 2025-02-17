@@ -1,4 +1,25 @@
 @import AVFoundation;
+@import CoreFoundation;
+
+void y(void (* cb)(const void *, int, int)) {
+  NSURL * url = [NSURL fileURLWithPath:@"out/IMG_2450.MOV"];
+  AVPlayer * pl = [AVPlayer playerWithURL:url];
+  AVPlayerItemVideoOutput * vout = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:@{
+    (NSString *)kCVPixelBufferPixelFormatTypeKey: (NSString *)kCVPixelBufferPixelFormatTypeKey
+  }];
+  [pl.currentItem addOutput:vout];
+  [pl play];
+
+  NSLog(@"%f", [pl rate]);
+
+  CMTime time = CMTimeMake(0.0, 1);
+  NSLog(@"%d", [vout hasNewPixelBufferForItemTime:time]);
+  CVPixelBufferRef buf = [vout copyPixelBufferForItemTime:time itemTimeForDisplay:nil];
+
+  NSLog(@"%@", buf);
+
+  CVBufferRelease(buf);
+}
 
 void x(void (* cb)(const void *, int, int)) {
   NSURL * url = [NSURL fileURLWithPath:@"out/IMG_2450.MOV"];
@@ -19,3 +40,4 @@ void x(void (* cb)(const void *, int, int)) {
   CFRelease(data);
   CFRelease(data_prov);
 }
+
