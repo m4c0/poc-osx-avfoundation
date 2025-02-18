@@ -1,6 +1,37 @@
 @import AVFoundation;
 @import CoreFoundation;
 
+void x(void (* cb)(const void *, int, int)) {
+  NSURL * url = [NSURL fileURLWithPath:@"out/IMG_2450.MOV"];
+  AVMovie * mov = [AVMovie movieWithURL:url options:nil];
+
+  AVAssetTrack * trk = [[mov tracksWithMediaType:AVMediaTypeVideo] firstObject];
+  AVAssetReaderTrackOutput * out = [[AVAssetReaderTrackOutput alloc] initWithTrack:trk outputSettings:@{(id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)}];
+
+  NSLog(@"1");
+  AVAssetReader * rdr = [[AVAssetReader alloc] initWithAsset:mov error:nil];
+  [rdr addOutput:out];
+  [rdr startReading];
+
+  NSLog(@"2");
+  CMSampleBufferRef smp = [out copyNextSampleBuffer];
+  CVPixelBufferRef img = (CVPixelBufferRef)CMSampleBufferGetImageBuffer(smp);
+  NSLog(@"3");
+
+  CVPixelBufferLockBaseAddress(img, kCVPixelBufferLock_ReadOnly);
+  NSLog(@"4");
+  void * addr = CVPixelBufferGetBaseAddress(img);
+  int w = CVPixelBufferGetBytesPerRow(img) / 4;
+  int h = CVPixelBufferGetHeight(img);
+  cb(addr, w, h);
+
+  NSLog(@"5");
+  CVPixelBufferUnlockBaseAddress(img, kCVPixelBufferLock_ReadOnly);
+
+  CFRelease(smp);
+  NSLog(@"6");
+}
+
 void y(void (* cb)(const void *, int, int)) {
   NSURL * url = [NSURL fileURLWithPath:@"out/IMG_2450.MOV"];
   AVPlayer * pl = [AVPlayer playerWithURL:url];
@@ -21,7 +52,7 @@ void y(void (* cb)(const void *, int, int)) {
   CVBufferRelease(buf);
 }
 
-void x(void (* cb)(const void *, int, int)) {
+void z(void (* cb)(const void *, int, int)) {
   NSURL * url = [NSURL fileURLWithPath:@"out/IMG_2450.MOV"];
   AVMovie * mov = [AVMovie movieWithURL:url options:nil];
   AVAssetImageGenerator * gen = [AVAssetImageGenerator assetImageGeneratorWithAsset:mov];
