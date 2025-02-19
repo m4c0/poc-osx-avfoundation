@@ -3,10 +3,13 @@
 
 void tts() {
   @autoreleasepool {
+    float max = AVSpeechUtteranceMaximumSpeechRate;
+    float min = AVSpeechUtteranceMinimumSpeechRate;
+
     NSString * text = @"These are five reasons to fill the gap with gapes";
     AVSpeechUtterance * utt = [AVSpeechUtterance speechUtteranceWithString:text];
     utt.voice = [AVSpeechSynthesisVoice voiceWithIdentifier:@"com.apple.voice.compact.en-GB.Daniel"];
-    // utt.rate = AVSpeechUtteranceMaximumSpeechRate;
+    utt.rate = (max - min) * 0.6 + min;
 
     //for (AVSpeechSynthesisVoice * v in [AVSpeechSynthesisVoice speechVoices]) {
     //  if (![v.language hasPrefix:@"en"]) continue;
