@@ -4,6 +4,7 @@
 import stubby;
 
 extern "C" void x(void (*)(const void *, int, int));
+extern "C" void tts();
 
 void frame(const void * ptr, int w, int h) {
   auto p = static_cast<const stbi::pixel *>(ptr);
@@ -11,5 +12,6 @@ void frame(const void * ptr, int w, int h) {
 }
 
 int main() {
-  x(frame);
+  //x(frame);
+  tts();
 }

@@ -1,6 +1,44 @@
 @import AVFoundation;
 @import CoreFoundation;
 
+void tts() {
+  @autoreleasepool {
+    NSString * text = @"These are five reasons to fill the gap with gapes";
+    AVSpeechUtterance * utt = [AVSpeechUtterance speechUtteranceWithString:text];
+    utt.voice = [AVSpeechSynthesisVoice voiceWithIdentifier:@"com.apple.voice.compact.en-GB.Daniel"];
+    // utt.rate = AVSpeechUtteranceMaximumSpeechRate;
+
+    //for (AVSpeechSynthesisVoice * v in [AVSpeechSynthesisVoice speechVoices]) {
+    //  if (![v.language hasPrefix:@"en"]) continue;
+    //  NSLog(@"%@", v);
+    //}
+
+    AVSpeechSynthesizer * synth = [[AVSpeechSynthesizer alloc] init];
+    [synth speakUtterance:utt];
+    //[synth writeUtterance:utt toBufferCallback:^(AVAudioBuffer * _Nonnull buffer) {
+    //  NSLog(@"Received audio buffer: %@", buffer);
+    //}];
+        
+    [[NSRunLoop currentRunLoop] run];
+  }
+}
+void tts1() {
+  AVSpeechSynthesisVoice * voice = [AVSpeechSynthesisVoice voiceWithLanguage:@"en-IE"];
+
+  AVSpeechUtterance * utt = [[AVSpeechUtterance alloc] initWithString:@"It's a whole new world"];
+  utt.voice = voice;
+  utt.rate = AVSpeechUtteranceDefaultSpeechRate;
+
+  AVSpeechSynthesizer * sync = [[AVSpeechSynthesizer alloc] init];
+  NSLog(@"%@ %@", utt, sync);
+
+  //[sync speakUtterance:utt];
+
+  [sync writeUtterance:utt toBufferCallback:^(AVAudioBuffer * buf) {
+    NSLog(@"%@", buf);
+  }];
+}
+
 void x(void (* cb)(const void *, int, int)) {
   NSURL * url = [NSURL fileURLWithPath:@"out/IMG_2450.MOV"];
   AVMovie * mov = [AVMovie movieWithURL:url options:nil];
