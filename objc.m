@@ -1,6 +1,15 @@
 @import AVFoundation;
 @import CoreFoundation;
 
+@interface Delegate : NSObject<AVSpeechSynthesizerDelegate>
+@end
+@implementation Delegate
+- (void) speechSynthesizer:(AVSpeechSynthesizer *)synth willSpeakRangeOfSpeechString:(NSRange)range utterance:(AVSpeechUtterance *)utt {
+  NSString * buf = [utt.speechString substringWithRange:range];
+  NSLog(@"%@", buf);
+}
+@end
+
 void tts() {
   @autoreleasepool {
     float max = AVSpeechUtteranceMaximumSpeechRate;
@@ -16,30 +25,18 @@ void tts() {
     //  NSLog(@"%@", v);
     //}
 
+    Delegate * delegate = [Delegate new];
+
     AVSpeechSynthesizer * synth = [[AVSpeechSynthesizer alloc] init];
+    synth.delegate = delegate;
     [synth speakUtterance:utt];
     //[synth writeUtterance:utt toBufferCallback:^(AVAudioBuffer * _Nonnull buffer) {
     //  NSLog(@"Received audio buffer: %@", buffer);
+    //  //[NSThread sleepForTimeInterval:1.0];
     //}];
         
-    [[NSRunLoop currentRunLoop] run];
+    [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:3]];
   }
-}
-void tts1() {
-  AVSpeechSynthesisVoice * voice = [AVSpeechSynthesisVoice voiceWithLanguage:@"en-IE"];
-
-  AVSpeechUtterance * utt = [[AVSpeechUtterance alloc] initWithString:@"It's a whole new world"];
-  utt.voice = voice;
-  utt.rate = AVSpeechUtteranceDefaultSpeechRate;
-
-  AVSpeechSynthesizer * sync = [[AVSpeechSynthesizer alloc] init];
-  NSLog(@"%@ %@", utt, sync);
-
-  //[sync speakUtterance:utt];
-
-  [sync writeUtterance:utt toBufferCallback:^(AVAudioBuffer * buf) {
-    NSLog(@"%@", buf);
-  }];
 }
 
 void x(void (* cb)(const void *, int, int)) {
