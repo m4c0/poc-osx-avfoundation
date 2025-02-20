@@ -110,3 +110,29 @@ void z(void (* cb)(const void *, int, int)) {
   CFRelease(data_prov);
 }
 
+void vdo_write() {
+  NSDictionary * opts = @{
+    AVVideoCodecKey: AVVideoCodecTypeH264,
+    AVVideoWidthKey: @(720),
+    AVVideoHeightKey: @(1280),
+  };
+  AVAssetWriterInput * inp = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeVideo
+                                                                outputSettings:opts];
+
+  opts = @{
+    (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32ARGB),
+    (id)kCVPixelBufferWidthKey: @(720),
+    (id)kCVPixelBufferHeightKey: @(1280),
+    (id)kCVPixelBufferBytesPerRowAlignmentKey: @(4 * 720)
+  };
+  AVAssetWriterInputPixelBufferAdaptor * pba = [[AVAssetWriterInputPixelBufferAdaptor alloc] initWithAssetWriterInput:inp
+                                                                                          sourcePixelBufferAttributes:opts];
+
+  NSURL * url = [NSURL fileURLWithPath:@"out/test.mov"];
+  AVAssetWriter * aw = [AVAssetWriter assetWriterWithURL:url
+                                                fileType:AVFileTypeQuickTimeMovie
+                                                   error:nil];
+  [aw addInput:inp];
+  [aw startWriting];
+  [aw startSessionAtSourceTime:kCMTimeZero];
+}
