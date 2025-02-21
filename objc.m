@@ -122,9 +122,21 @@ void vdo_write() {
     AVVideoWidthKey: @(720 / 2),
     AVVideoHeightKey: @(1280 / 2),
   };
-  AVAssetWriterInput * inp = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeVideo
+  AVAssetWriterInput * vin = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeVideo
                                                                 outputSettings:opts];
-  inp.expectsMediaDataInRealTime = YES;
+  vin.expectsMediaDataInRealTime = YES;
+
+  opts = @{
+    AVFormatIDKey: @(kAudioFormatMPEG4AAC),
+    AVSampleRateKey: @44100,
+    AVNumberOfChannelsKey: @1,
+    AVEncoderBitRateKey: @128000
+  };
+  AVAssetWriterInput * ain = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeAudio
+                                                                outputSettings:opts];
+  ain.expectsMediaDataInRealTime = YES;
+
+  AVSpeechSynthesizer * synth = [[AVSpeechSynthesizer alloc] init];
 
   opts = @{
     (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32ARGB),
@@ -132,12 +144,61 @@ void vdo_write() {
     (id)kCVPixelBufferHeightKey: @(1280),
     (id)kCVPixelBufferBytesPerRowAlignmentKey: @(4 * 720)
   };
-  AVAssetWriterInputPixelBufferAdaptor * pba = [[AVAssetWriterInputPixelBufferAdaptor alloc] initWithAssetWriterInput:inp
+  AVAssetWriterInputPixelBufferAdaptor * pba = [[AVAssetWriterInputPixelBufferAdaptor alloc] initWithAssetWriterInput:vin
                                                                                           sourcePixelBufferAttributes:opts];
 
-  [aw addInput:inp];
+  [aw addInput:vin];
+  [aw addInput:ain];
   [aw startWriting];
   [aw startSessionAtSourceTime:kCMTimeZero];
+
+  NSString * text = @"Just a test";
+  AVSpeechUtterance * utt = [AVSpeechUtterance speechUtteranceWithString:text];
+  [synth writeUtterance:utt toBufferCallback:^(AVAudioBuffer * _Nonnull buffer) {
+    NSLog(@"Received audio buffer: %@", buffer);
+    if (!ain.readyForMoreMediaData) {
+      NSLog(@"audio not ready");
+    }
+
+    AVAudioPCMBuffer * pcm = (AVAudioPCMBuffer *)buffer;
+
+    CMBlockBufferRef blk;
+    CMBlockBufferCreateWithMemoryBlock(
+      kCFAllocatorDefault,
+      pcm.floatChannelData[0],
+      pcm.frameLength * sizeof(float),
+      kCFAllocatorNull,
+      NULL,
+      0,
+      pcm.frameLength * sizeof(float),
+      kCMBlockBufferAssureMemoryNowFlag,
+      &blk
+    );
+
+    AudioStreamBasicDescription asbd;
+    asbd.mSampleRate = pcm.format.sampleRate;
+    asbd.mFormatID = kAudioFormatLinearPCM;
+    asbd.mChannelsPerFrame = 1;
+    asbd.mFramesPerPacket = 1;
+    asbd.mBitsPerChannel = 32;
+    asbd.mBytesPerFrame = 4;
+    asbd.mBytesPerPacket = 4;
+    asbd.mFormatFlags = pcm.format.streamDescription->mFormatFlags;
+
+    CMFormatDescriptionRef fmt;
+    CMAudioFormatDescriptionCreate(kCFAllocatorDefault, &asbd, 0, NULL, 0, NULL, NULL, &fmt);
+
+    CMSampleBufferRef smp;
+    CMSampleBufferCreate(kCFAllocatorDefault, blk, YES, NULL, NULL, fmt, pcm.frameLength, 0, NULL, 0, NULL, &smp);
+    if (![ain appendSampleBuffer:smp]) {
+      NSLog(@"%@", aw.error);
+      return;
+    }
+
+    CFRelease(fmt);
+    CFRelease(smp);
+    CFRelease(blk);
+  }];
 
   opts = @{
     (id)kCVPixelBufferCGImageCompatibilityKey: @(YES),
@@ -172,8 +233,10 @@ void vdo_write() {
     CVBufferRelease(buf);
   }
   NSLog(@"after");
+  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
 
-  [inp markAsFinished];
+  [vin markAsFinished];
+  [ain markAsFinished];
   [aw finishWritingWithCompletionHandler:^{
     NSLog(@"Done");
   }];
