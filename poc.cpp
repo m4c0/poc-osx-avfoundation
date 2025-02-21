@@ -5,6 +5,7 @@ import stubby;
 
 extern "C" void x(void (*)(const void *, int, int));
 extern "C" void tts();
+extern "C" void vdo_write();
 
 void frame(const void * ptr, int w, int h) {
   auto p = static_cast<const stbi::pixel *>(ptr);
@@ -13,5 +14,6 @@ void frame(const void * ptr, int w, int h) {
 
 int main() {
   //x(frame);
-  tts();
+  //tts();
+  vdo_write();
 }

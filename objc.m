@@ -111,6 +111,12 @@ void z(void (* cb)(const void *, int, int)) {
 }
 
 void vdo_write() {
+  unlink("out/test.mov");
+  NSURL * url = [NSURL fileURLWithPath:@"out/test.mov"];
+  AVAssetWriter * aw = [AVAssetWriter assetWriterWithURL:url
+                                                fileType:AVFileTypeQuickTimeMovie
+                                                   error:nil];
+
   NSDictionary * opts = @{
     AVVideoCodecKey: AVVideoCodecTypeH264,
     AVVideoWidthKey: @(720),
@@ -118,6 +124,7 @@ void vdo_write() {
   };
   AVAssetWriterInput * inp = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeVideo
                                                                 outputSettings:opts];
+  inp.expectsMediaDataInRealTime = YES;
 
   opts = @{
     (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32ARGB),
@@ -128,11 +135,50 @@ void vdo_write() {
   AVAssetWriterInputPixelBufferAdaptor * pba = [[AVAssetWriterInputPixelBufferAdaptor alloc] initWithAssetWriterInput:inp
                                                                                           sourcePixelBufferAttributes:opts];
 
-  NSURL * url = [NSURL fileURLWithPath:@"out/test.mov"];
-  AVAssetWriter * aw = [AVAssetWriter assetWriterWithURL:url
-                                                fileType:AVFileTypeQuickTimeMovie
-                                                   error:nil];
   [aw addInput:inp];
   [aw startWriting];
   [aw startSessionAtSourceTime:kCMTimeZero];
+
+  opts = @{
+    (id)kCVPixelBufferCGImageCompatibilityKey: @(YES),
+    (id)kCVPixelBufferCGBitmapContextCompatibilityKey: @(YES),
+  };
+  for (int frame = 0; frame < 30; frame++) {
+    CVPixelBufferRef buf;
+    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, 720, 1280, kCVPixelFormatType_32ARGB, (__bridge CFDictionaryRef)opts, &buf);
+    // CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pba.pixelBufferPool, &buf);
+    if (status != kCVReturnSuccess || !buf) {
+      NSLog(@"%d", status);
+      return;
+    }
+
+    CVPixelBufferLockBaseAddress(buf, 0);
+    unsigned * pixies = CVPixelBufferGetBaseAddress(buf);
+    for (int i = 0; i < 720 * 1280; i++) pixies[i] = ~0;
+    CVPixelBufferUnlockBaseAddress(buf, 0);
+
+    CMTime time = CMTimeMake(frame, 24);
+    for (int i = 0; i < 30; i++) {
+      if (!pba.assetWriterInput.readyForMoreMediaData) {
+        NSLog(@"Buffer wasnt ready");
+        [NSThread sleepForTimeInterval:0.05];
+        continue;
+      }
+      if ([pba appendPixelBuffer:buf withPresentationTime:time]) {
+        NSLog(@"Did append pixies");
+        break;
+      }
+      NSLog(@"%@", aw.error);
+      NSLog(@"Failed frame %d attempt %d", frame, i);
+      [NSThread sleepForTimeInterval:0.05];
+    }
+    CVBufferRelease(buf);
+  }
+
+  [inp markAsFinished];
+  [aw finishWritingWithCompletionHandler:^{
+    NSLog(@"Done");
+  }];
+
+  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:3]];
 }
