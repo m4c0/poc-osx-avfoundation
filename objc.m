@@ -165,13 +165,10 @@ void vdo_write() {
         [NSThread sleepForTimeInterval:0.05];
         continue;
       }
-      if ([pba appendPixelBuffer:buf withPresentationTime:time]) {
-        NSLog(@"Did append pixies");
-        break;
-      }
+    }
+    if (![pba appendPixelBuffer:buf withPresentationTime:time]) {
       NSLog(@"%@", aw.error);
-      NSLog(@"Failed frame %d attempt %d", frame, i);
-      [NSThread sleepForTimeInterval:0.05];
+      return;
     }
     CVBufferRelease(buf);
   }
