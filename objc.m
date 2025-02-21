@@ -155,7 +155,7 @@ void vdo_write() {
 
     CVPixelBufferLockBaseAddress(buf, 0);
     unsigned * pixies = CVPixelBufferGetBaseAddress(buf);
-    for (int i = 0; i < 720 * 1280; i++) pixies[i] = (i % 720) > 360 ? ~0 : 0;
+    for (int i = 0; i < 720 * 1280; i++) pixies[i] = ((i + frame) % 720) > 360 ? ~0 : 0;
     CVPixelBufferUnlockBaseAddress(buf, 0);
 
     CMTime time = CMTimeMake(frame, 24);
