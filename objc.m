@@ -146,8 +146,7 @@ void vdo_write() {
   NSLog(@"before");
   for (int frame = 0; frame < 30; frame++) {
     CVPixelBufferRef buf;
-    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, 720, 1280, kCVPixelFormatType_32ARGB, (__bridge CFDictionaryRef)opts, &buf);
-    // CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pba.pixelBufferPool, &buf);
+    CVReturn status = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pba.pixelBufferPool, &buf);
     if (status != kCVReturnSuccess || !buf) {
       NSLog(@"%d", status);
       return;
