@@ -143,6 +143,7 @@ void vdo_write() {
     (id)kCVPixelBufferCGImageCompatibilityKey: @(YES),
     (id)kCVPixelBufferCGBitmapContextCompatibilityKey: @(YES),
   };
+  NSLog(@"before");
   for (int frame = 0; frame < 30; frame++) {
     CVPixelBufferRef buf;
     CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, 720, 1280, kCVPixelFormatType_32ARGB, (__bridge CFDictionaryRef)opts, &buf);
@@ -174,6 +175,7 @@ void vdo_write() {
     }
     CVBufferRelease(buf);
   }
+  NSLog(@"after");
 
   [inp markAsFinished];
   [aw finishWritingWithCompletionHandler:^{
