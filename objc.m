@@ -136,7 +136,11 @@ void vdo_write() {
                                                                 outputSettings:opts];
   ain.expectsMediaDataInRealTime = YES;
 
+
+  Delegate * del = [Delegate new];
+
   AVSpeechSynthesizer * synth = [[AVSpeechSynthesizer alloc] init];
+  synth.delegate = del;
 
   opts = @{
     (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32ARGB),
