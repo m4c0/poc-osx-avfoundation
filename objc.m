@@ -204,10 +204,6 @@ void vdo_write() {
     CFRelease(blk);
   }];
 
-  opts = @{
-    (id)kCVPixelBufferCGImageCompatibilityKey: @(YES),
-    (id)kCVPixelBufferCGBitmapContextCompatibilityKey: @(YES),
-  };
   NSLog(@"before");
   for (int frame = 0; frame < 30; frame++) {
     CVPixelBufferRef buf;
