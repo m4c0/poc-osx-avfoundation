@@ -8,6 +8,10 @@
   NSString * buf = [utt.speechString substringWithRange:range];
   NSLog(@"%@", buf);
 }
+- (void) speechSynthesizer:(AVSpeechSynthesizer *)synth willSpeakMarker:(AVSpeechSynthesisMarker *)marker utterance:(AVSpeechUtterance *)utt{
+  NSLog(@"%ld %@ %lu", marker.mark, marker.phoneme, marker.byteSampleOffset);
+}
+
 @end
 
 void tts() {
@@ -156,7 +160,7 @@ void vdo_write() {
   [aw startWriting];
   [aw startSessionAtSourceTime:kCMTimeZero];
 
-  NSString * text = @"Just a test";
+  NSString * text = @"These are five reasons to fill the gap with gapes";
   AVSpeechUtterance * utt = [AVSpeechUtterance speechUtteranceWithString:text];
   [synth writeUtterance:utt toBufferCallback:^(AVAudioBuffer * _Nonnull buffer) {
     NSLog(@"Received audio buffer: %@", buffer);
