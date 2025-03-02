@@ -9,7 +9,8 @@
   NSLog(@"%@", buf);
 }
 - (void) speechSynthesizer:(AVSpeechSynthesizer *)synth willSpeakMarker:(AVSpeechSynthesisMarker *)marker utterance:(AVSpeechUtterance *)utt{
-  NSLog(@"%ld %@ %lu", marker.mark, marker.phoneme, marker.byteSampleOffset);
+  NSString * buf = [utt.speechString substringWithRange:marker.range];
+  NSLog(@"%ld %@ %lu", marker.mark, buf, marker.byteSampleOffset);
 }
 
 @end
