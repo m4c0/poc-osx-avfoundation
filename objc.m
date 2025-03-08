@@ -248,3 +248,17 @@ void vdo_write() {
 
   [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:3]];
 }
+
+void read_audio() {
+  NSError * err;
+  NSURL * url = [NSURL fileURLWithPath:@"out/smart.m4a"];
+  AVAudioFile * file = [[AVAudioFile alloc] initForReading:url error:&err];
+  if (err) NSLog(@"%@", err);
+  AVAudioPCMBuffer * buffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:file.processingFormat frameCapacity:file.length];
+  [file readIntoBuffer:buffer error:&err];
+  if (err) NSLog(@"%@", err);
+
+  for (int i = 0; i < file.length; i += 100) {
+    NSLog(@"%1.3f", buffer.floatChannelData[0][i]);
+  }
+}

@@ -5,6 +5,7 @@ import stubby;
 
 extern "C" void x(void (*)(const void *, int, int));
 extern "C" void tts();
+extern "C" void read_audio();
 extern "C" void vdo_write();
 
 void frame(const void * ptr, int w, int h) {
@@ -15,5 +16,6 @@ void frame(const void * ptr, int w, int h) {
 int main() {
   //x(frame);
   //tts();
-  vdo_write();
+  //vdo_write();
+  read_audio();
 }
